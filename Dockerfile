@@ -8,4 +8,4 @@ RUN uv sync --frozen --no-dev
 
 COPY . .
 
-CMD ["python", "main.py"]
+CMD ["uv", "run", "python", "main.py"]
