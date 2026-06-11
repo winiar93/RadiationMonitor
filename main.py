@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 from models import GeigerReading
 from pydantic import ValidationError
-from database import init_db, save_reading, cleanup_old_rows
+from database import init_db, save_reading, cleanup_old_rows, get_recent_readings
 
 app = Flask(__name__)
 
@@ -28,6 +28,14 @@ def add_reading():
     }), 201
 
 
+@app.route("/api/readings", methods=["GET"])
+def get_readings():
+    readings = get_recent_readings(hours=24)
+    return jsonify(readings), 200
+
+@app.route("/")
+def dashboard():
+    return render_template("dashboard.html")
 
 if __name__ == "__main__":
     init_db()
