@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geiger Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+
+        canvas {
+            max-height: 600px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Geiger Counter Dashboard</h1>
+
+    <div class="stats">
+        <div>Actual CPS: <span id="current-cps">-</span></div>
+        <div>Average MA(8): <span id="current-ma">-</span></div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="readingsChart"></canvas>
+    </div>
+
+    <script>
+        let chart = null;
+
+        async function loadChart() {
+            try {
+                const response = await fetch("/api/readings");
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data.length) {
+                    return;
+                }
+
+                const labels = data.map(r =>
+                    new Date(r.timestamp).toLocaleString("pl-PL")
+                );
+
+                const cpsValues = data.map(r => r.cps);
+                const maValues = data.map(r => r.cps_ma);
+
+                const latest = data[data.length - 1];
+
+                document.getElementById("current-cps").textContent =
+                    latest.cps.toFixed(2);
+
+                document.getElementById("current-ma").textContent =
+                    Number(latest.cps_ma).toFixed(2);
+
+                if (chart) {
+                    chart.data.labels = labels;
+                    chart.data.datasets[0].data = cpsValues;
+                    chart.data.datasets[1].data = maValues;
+                    chart.update();
+                    return;
+                }
+
+                const ctx = document.getElementById("readingsChart");
+
+                chart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: "CPS",
+                                data: cpsValues,
+                                borderColor: "rgb(75, 192, 192)",
+                                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                                borderWidth: 1,
+                                pointRadius: 1,
+                                tension: 0.1,
+                                fill: false
+                            },
+                            {
+                                label: "Moving Average (MA8)",
+                                data: maValues,
+                                borderColor: "rgb(255, 99, 132)",
+                                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                                borderWidth: 3,
+                                pointRadius: 0,
+                                tension: 0.2,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+
+                        interaction: {
+                            intersect: false,
+                            mode: "index"
+                        },
+
+                        plugins: {
+                            legend: {
+                                display: true
+                            },
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Time"
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: "CPS"
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error("Błąd pobierania danych:", err);
+            }
+        }
+
+        loadChart();
+
+        // automatyczne odświeżanie co 30 s
+        setInterval(loadChart, 30000);
+    </script>
+
+</body>
+</html>
