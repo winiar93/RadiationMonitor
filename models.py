@@ -4,7 +4,8 @@ from typing import Optional
 
 
 class GeigerReading(BaseModel):
-    cps: int = Field(..., ge=0, description="Counts per second (must be >= 0)")
+    cpm: int = Field(..., ge=0, description="Counts per minute (must be >= 0)")
+    usvh: float = Field(..., ge=0, description="Counts per second (must be >= 0)")
     timestamp: Optional[datetime] = Field(
         default=None,
         description="UTC timestamp, auto-generated if not provided"

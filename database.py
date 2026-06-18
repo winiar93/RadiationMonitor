@@ -11,7 +11,8 @@ def init_db():
         conn.execute("""
             CREATE TABLE IF NOT EXISTS readings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                cps INTEGER NOT NULL,
+                cpm INTEGER NOT NULL,
+                usvh REAL NOT NULL,
                 timestamp TEXT NOT NULL
             )
         """)
@@ -21,8 +22,8 @@ def save_reading(reading: GeigerReading):
 
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
-            "INSERT INTO readings (cps, timestamp) VALUES (?, ?)",
-            (reading.cps, reading.timestamp.isoformat()),
+            "INSERT INTO readings (cpm, usvh, timestamp) VALUES (?, ?, ?)",
+            (reading.cpm, reading.usvh, reading.timestamp.isoformat()),
         )
 
 
@@ -38,10 +39,10 @@ def get_recent_readings(limit: int | None = None, hours: int | None = None, ma_w
     with sqlite3.connect(DB_PATH) as conn:
         inner = f"""
             SELECT *,
-                   AVG(cps) OVER (
+                   AVG(cpm) OVER (
                        ORDER BY timestamp
                        ROWS BETWEEN {ma_window - 1} PRECEDING AND CURRENT ROW
-                   ) AS cps_ma
+                   ) AS cpm_ma
             FROM readings
         """
         if hours:
