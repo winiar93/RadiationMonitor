@@ -44,7 +44,7 @@
     <h1>Geiger Counter Dashboard</h1>
 
     <div class="stats">
-        <div>Actual CPS: <span id="current-cps">-</span></div>
+        <div>Actual CPM: <span id="current-cpm">-</span></div>
         <div>Average MA(8): <span id="current-ma">-</span></div>
     </div>
 
@@ -73,20 +73,20 @@
                     new Date(r.timestamp).toLocaleString("pl-PL")
                 );
 
-                const cpsValues = data.map(r => r.cps);
-                const maValues = data.map(r => r.cps_ma);
+                const cpmValues = data.map(r => r.cpm);
+                const maValues = data.map(r => r.cpm_ma);
 
                 const latest = data[data.length - 1];
 
-                document.getElementById("current-cps").textContent =
-                    latest.cps.toFixed(2);
+                document.getElementById("current-cpm").textContent =
+                    latest.cpm.toFixed(2);
 
                 document.getElementById("current-ma").textContent =
-                    Number(latest.cps_ma).toFixed(2);
+                    Number(latest.cpm_ma).toFixed(2);
 
                 if (chart) {
                     chart.data.labels = labels;
-                    chart.data.datasets[0].data = cpsValues;
+                    chart.data.datasets[0].data = cpmValues;
                     chart.data.datasets[1].data = maValues;
                     chart.update();
                     return;
@@ -100,8 +100,8 @@
                         labels: labels,
                         datasets: [
                             {
-                                label: "CPS",
-                                data: cpsValues,
+                                label: "CPM",
+                                data: cpmValues,
                                 borderColor: "rgb(75, 192, 192)",
                                 backgroundColor: "rgba(75, 192, 192, 0.2)",
                                 borderWidth: 1,
@@ -150,7 +150,7 @@
                                 beginAtZero: true,
                                 title: {
                                     display: true,
-                                    text: "CPS"
+                                    text: "CPM"
                                 }
                             }
                         }
